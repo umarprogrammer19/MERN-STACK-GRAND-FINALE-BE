@@ -8,10 +8,13 @@ import authRouter from "./src/routes/auth.routes.js"
 const app = express();
 const port = process.env.PORT;
 
-const corsOption = {
-    origin: "http://localhost:3000",
+const corsOptions = {
+    origin: process.env.NODE_ENV === 'production'
+        ? 'https://your-production-url.com'
+        : 'http://localhost:3000',
     credentials: true,
 };
+
 app.use(cors(corsOption));
 app.use((urlencoded({ extended: false })));
 app.use(express.json());
