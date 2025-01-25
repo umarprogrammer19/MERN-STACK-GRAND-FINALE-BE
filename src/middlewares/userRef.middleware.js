@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import userModels from "../models/users.models.js";
+import clientModels from "../models/client.models.js";
 
 export const authenticate = async (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -12,7 +12,7 @@ export const authenticate = async (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.ACCESS_JWT_SECRET);
-        const user = await userModels.findOne({ email: decoded.email });
+        const user = await clientModels.findOne({ email: decoded.email });
 
         if (!user) {
             return res.status(401).json({ message: "Unauthorized: User not found" });

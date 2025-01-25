@@ -1,7 +1,9 @@
 import { Sign_Up_Email_Format } from "../email/signup.js";
 import clientModels from "../models/client.models.js";
+import { generateAccessToken, generateRefreshToken } from "../utils/jwt.js";
 import { transporter } from "../utils/nodemailer.js";
 import { generateRandomPassword } from "../utils/random_password.js";
+import bcrypt from "bcrypt";
 
 export const registerUser = async (req, res) => {
     try {
@@ -62,10 +64,10 @@ export const signIn = async (req, res) => {
         }
 
         // Validate password
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-            return res.status(400).json({ message: "Invalid password" });
-        }
+        // const isPasswordValid = await bcrypt.compare(password, user.password);
+        // if (!isPasswordValid) {
+        //     return res.status(400).json({ message: "Invalid password" });
+        // }
 
         // Generate access and refresh tokens
         const accessToken = generateAccessToken(user);
@@ -97,11 +99,12 @@ export const signIn = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
     try {
-        const { userId } = req.user; // Assuming `req.user` is populated by authentication middleware
-        const { newPassword } = req.body;
+        const userId = req.user._id; // Assuming req.user is populated with the authenticated user's data.
+
+        const { password } = req.body;
 
         // Validate new password
-        if (!newPassword || newPassword.length < 8) {
+        if (!password || password.length < 8) {
             return res.status(400).json({
                 message: "Password must be at least 8 characters long",
             });
@@ -114,11 +117,11 @@ export const resetPassword = async (req, res) => {
         }
 
         // Hash the new password
-        // const hashedPassword = await bcrypt.hash(newPassword, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         // Update the user's password
-        // user.password = hashedPassword;
-        await clientModels.findByIdAndUpdate(userId, { password: newPassword }, { new: true })
+        user.password = hashedPassword;
+        await user.save(); // Save the updated user object directly
 
         res.status(200).json({
             message: "Password updated successfully",
@@ -131,6 +134,7 @@ export const resetPassword = async (req, res) => {
         });
     }
 };
+
 
 // // Login a user
 // exports.loginUser = async (req, res) => {
