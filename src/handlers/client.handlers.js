@@ -2,7 +2,7 @@ import { Sign_Up_Email_Format } from "../email/signup.js";
 import clientModels from "../models/client.models.js";
 import { transporter } from "../utils/nodemailer.js";
 
-const registerUser = async (req, res) => {
+export const registerUser = async (req, res) => {
     try {
         const { cnic, email, name, password } = req.body;
         if (!cnic) return res.status(400).json({ message: "Please Enter Your CNIC Number" });
@@ -20,11 +20,12 @@ const registerUser = async (req, res) => {
             from: 'Umar Farooq 🚀',
             to: `${email}, ${process.env.EMAIL}`,
             subject: "Welcome to Our Micro Finance Application! 🚀",
-            html: Sign_Up_Email_Format(fullname),
+            html: Sign_Up_Email_Format(name, password),
         })
 
     } catch (error) {
         console.log(error.message);
+        res.status(400).json({ message: "Error Occured During Registration" });
     }
 }
 // const jwt = require("jsonwebtoken");
