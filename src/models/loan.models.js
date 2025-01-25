@@ -12,8 +12,8 @@ const LoanSchema = new mongoose.Schema({
             cnic: { type: String, required: true }
         }
     ],
-    status: { type: String, default: 'Pending' }, // Pending, Approved, Rejected
+    status: { type: String, enum: ["Pending", "Approved", "Rejected"], default: 'Pending' }, // Pending, Approved, Rejected
     createdAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('Loan', LoanSchema);
+export default mongoose.model('Loan', LoanSchema);
