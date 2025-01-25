@@ -20,7 +20,7 @@ export const addProduct = async (req, res) => {
         await productsModels.create({ title, description, price, imageURL, userRef: req.user._id });
         res.status(201).json({ message: "Product added successfully" });
     } catch (error) {
-        console.error("Error occurred:", error);
+        console.error("Error occurred:", error.message);
         res.status(500).json({ message: "An error occurred" });
     }
 };
@@ -45,7 +45,7 @@ export const getProducts = async (req, res) => {
             products,
         });
     } catch (error) {
-        console.error(error);
+        console.error(error.message);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -57,7 +57,7 @@ export const getSingleProduct = async (req, res) => {
         const product = await productsModels.findById(id)
         res.status(200).json({ message: "Success", product })
     } catch (error) {
-        console.log("code error", error);
+        console.log("code error", error.message);
     }
 };
 
@@ -91,7 +91,7 @@ export const updateProduct = async (req, res) => {
         await product.save();
         res.status(200).json({ message: "Product updated successfully", product });
     } catch (error) {
-        console.error("Error occurred:", error);
+        console.error("Error occurred:", error.message);
         res.status(500).json({ message: "An error occurred" });
     }
 };
@@ -117,7 +117,7 @@ export const deleteProduct = async (req, res) => {
 
         res.status(200).json({ message: "Product deleted successfully", product });
     } catch (error) {
-        console.error("Error occurred:", error);
+        console.error("Error occurred:", error.message);
         res.status(500).json({ message: "An error occurred" });
     }
 };
