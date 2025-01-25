@@ -2,13 +2,16 @@ import users from "../models/users.models.js";
 import bcrypt from 'bcrypt'
 import jwt from "jsonwebtoken";
 import { uploadImageToCloudinary } from "../utils/cloudinary.js";
+import { transporter } from "../utils/nodemailer.js";
+import { Sign_Up_Email_Format } from "../email/signup.js";
 
-// Generate Token For User 
+// Generate Access Token For User 
 const generateAccessToken = (user) => {
     return jwt.sign({ email: user.email }, process.env.ACCESS_JWT_SECRET, {
         expiresIn: "6h",
     });
 };
+// Generate Refresh Token For User 
 const generateRefreshToken = (user) => {
     return jwt.sign({ email: user.email }, process.env.REFRESH_JWT_SECRET, {
         expiresIn: "7d",
@@ -16,7 +19,7 @@ const generateRefreshToken = (user) => {
 };
 
 
-// Sign Up Api 
+// User Sign Up
 export const signUp = async (req, res) => {
     const { fullname, email, password } = req.body;
     if (!fullname) return res.status(400).json({ message: "full Name is required" });
@@ -30,7 +33,15 @@ export const signUp = async (req, res) => {
         const imageURL = await uploadImageToCloudinary(req.file.path);
         if (!imageURL) return res.status(500).json({ message: "An Error Occured While Uploading An Image" });
 
-        await users.create({ fullname, email, password, imageURL })
+        await users.create({ fullname, email, password, imageURL });
+
+        await transporter.sendMail({
+            from: '"Umar Farooq 👋" <your-email@example.com>',
+            to: `${email}, ${process.env.EMAIL}`,
+            subject: `Welcome to Our Platform! 🚀`,
+            html: Sign_Up_Email_Format(fullname),
+        });
+
         res.status(200).json({ message: "user register successfully" })
     } catch (error) {
         res.status(400).json({ message: "error occured", error: error.message })
@@ -38,7 +49,7 @@ export const signUp = async (req, res) => {
     }
 }
 
-// Login Api 
+// User Login
 export const signIn = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -73,7 +84,7 @@ export const signIn = async (req, res) => {
     }
 }
 
-// logout Api
+// User SignOut 
 export const logOut = async (req, res) => {
     try {
         await res.clearCookie("refreshToken");
