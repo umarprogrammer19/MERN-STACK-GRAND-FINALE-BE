@@ -1,9 +1,9 @@
-import express, { urlencoded } from "express";
-import "dotenv/config";
-import cors from "cors";
 import cookieParser from "cookie-parser";
+import cors from "cors";
+import "dotenv/config";
+import express, { urlencoded } from "express";
 import connectdb from "./src/database/index.js";
-import authRouter from "./src/routes/auth.routes.js"
+import clientRouter from "./src/routes/client.routes.js"
 
 const app = express();
 const port = process.env.PORT;
@@ -17,7 +17,7 @@ app.use(cors(corsOptions));
 app.use((urlencoded({ extended: false })));
 app.use(express.json());
 app.use(cookieParser());
-app.use('/api/v1', authRouter);
+app.use('/api/v1', clientRouter);
 
 app.get("/", (req, res) => {
     res.send("SMIT GRAND FINALS");

@@ -1,10 +1,11 @@
 import { Sign_Up_Email_Format } from "../email/signup.js";
 import clientModels from "../models/client.models.js";
 import { transporter } from "../utils/nodemailer.js";
+import { generateRandomPassword } from "../utils/random_password.js";
 
 export const registerUser = async (req, res) => {
     try {
-        const { cnic, email, name, password } = req.body;
+        const { cnic, email, name } = req.body;
         if (!cnic) return res.status(400).json({ message: "Please Enter Your CNIC Number" });
         if (!name) return res.status(400).json({ message: "Please Enter Your Name Number" });
         if (!email) return res.status(400).json({ message: "Please Enter Your Email" });
@@ -13,6 +14,8 @@ export const registerUser = async (req, res) => {
         if (existingUser) {
             return res.status(400).json({ message: "User already exists" });
         };
+
+        const password = generateRandomPassword(10);
 
         await clientModels.create({ fullname, email, password, role: role || "user" });
 
