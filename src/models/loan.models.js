@@ -13,7 +13,6 @@ const LoanSchema = new mongoose.Schema({
         }
     ],
     status: { type: String, enum: ["Pending", "Approved", "Rejected"], default: 'Pending' }, // Pending, Approved, Rejected
-    createdAt: { type: Date, default: Date.now }
-});
+}, { timestamps: true });
 
 export default mongoose.model('Loan', LoanSchema);
