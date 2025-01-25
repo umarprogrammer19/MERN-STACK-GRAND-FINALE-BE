@@ -1,69 +1,65 @@
-import users from "../models/users.models.js";
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
+import { Sign_Up_Email_Format } from "../email/signup.js";
+import { default as usersModels } from "../models/users.models.js";
 import { uploadImageToCloudinary } from "../utils/cloudinary.js";
 import { transporter } from "../utils/nodemailer.js";
-import { Sign_Up_Email_Format } from "../email/signup.js";
-
-// Generate Access Token For User 
-const generateAccessToken = (user) => {
-    return jwt.sign({ email: user.email }, process.env.ACCESS_JWT_SECRET, {
-        expiresIn: "6h",
-    });
-};
-// Generate Refresh Token For User 
-const generateRefreshToken = (user) => {
-    return jwt.sign({ email: user.email }, process.env.REFRESH_JWT_SECRET, {
-        expiresIn: "7d",
-    });
-};
-
+import { generateAccessToken, generateRefreshToken } from '../utils/jwt.js';
 
 // User Sign Up
 export const signUp = async (req, res) => {
-    const { fullname, email, password } = req.body;
-    if (!fullname) return res.status(400).json({ message: "full Name is required" });
-    if (!email) return res.status(400).json({ message: "email is required" });
-    if (!password) return res.status(400).json({ message: "password is required" });
-    if (!req.file) return res.status(400).json({ message: "Image is required" });
+    const { fullname, email, password, role } = req.body
+    if (!fullname || !email || !password || !req.file) {
+        return res.status(400).json({ message: "All fields are required" })
+    }
+
     try {
-        const user = await users.findOne({ email })
-        if (user) return res.status(400).json({ message: "user already exits" });
+        const existingUser = await usersModels.findOne({ email })
+        if (existingUser) {
+            return res.status(400).json({ message: "User already exists" })
+        }
 
-        const imageURL = await uploadImageToCloudinary(req.file.path);
-        if (!imageURL) return res.status(500).json({ message: "An Error Occured While Uploading An Image" });
+        const imageURL = await uploadImageToCloudinary(req.file.path)
+        if (!imageURL) {
+            return res.status(500).json({ message: "Error uploading image" })
+        }
 
-        await users.create({ fullname, email, password, imageURL });
+        const newUser = await usersModels.create({ fullname, email, password, imageURL, role: role || "user" })
 
         await transporter.sendMail({
-            from: '"Umar Farooq 👋" <your-email@example.com>',
+            from: 'Umar Farooq 🚀',
             to: `${email}, ${process.env.EMAIL}`,
-            subject: `Welcome to Our Platform! 🚀`,
+            subject: "Welcome to Our Platform! 🚀",
             html: Sign_Up_Email_Format(fullname),
-        });
+        })
 
-        res.status(200).json({ message: "user register successfully" })
+        res.status(201).json({ message: "User registered successfully" })
     } catch (error) {
-        res.status(400).json({ message: "error occured", error: error.message })
-        console.log(error.message);
+        res.status(500).json({ message: "Error occurred", error: error.message })
     }
 }
 
+
 // User Login
 export const signIn = async (req, res) => {
+    const { email, password } = req.body
+    if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" })
+    }
+
     try {
-        const { email, password } = req.body;
-        if (!email) return res.status(400).json({ message: "Email is Required" });
-        if (!password) return res.status(400).json({ message: "Password is Required" });
+        const user = await usersModels.findOne({ email })
+        if (!user) {
+            return res.status(404).json({ message: "User not found" })
+        }
 
-        const user = await users.findOne({ email });
-        if (!user) return res.status(404).json({ message: "User Does Not Exists With This Email" });
+        const isPasswordValid = await bcrypt.compare(password, user.password)
+        if (!isPasswordValid) {
+            return res.status(400).json({ message: "Invalid password" })
+        }
 
-        const isTruePassword = await bcrypt.compare(password, user.password);
-        if (!isTruePassword) return res.status(400).json({ message: "Password Is Incorrect" });
-
-        const accessToken = generateAccessToken(user);
-        const refreshToken = generateRefreshToken(user);
+        const accessToken = generateAccessToken(user)
+        const refreshToken = generateRefreshToken(user)
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
@@ -71,16 +67,19 @@ export const signIn = async (req, res) => {
             sameSite: "strict",
             path: '/'
         });
-
         res.status(200).json({
-            message: "User Logged In Successfully",
+            message: "User logged in successfully",
             accessToken,
-            refreshToken,
-            user,
-        });
+            user: {
+                id: user._id,
+                fullname: user.fullname,
+                email: user.email,
+                role: user.role,
+                imageURL: user.imageURL,
+            },
+        })
     } catch (error) {
-        console.log(error.message);
-        res.status(500).json({ message: "An error occurred during Login", error: error.message });
+        res.status(500).json({ message: "Error occurred", error: error.message })
     }
 }
 

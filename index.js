@@ -9,9 +9,7 @@ const app = express();
 const port = process.env.PORT;
 
 const corsOptions = {
-    origin: process.env.NODE_ENV === 'production'
-        ? 'https://your-production-url.com'
-        : 'http://localhost:3000',
+    origin: 'http://localhost:3000',
     credentials: true,
 };
 
