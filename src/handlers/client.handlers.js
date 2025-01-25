@@ -80,6 +80,43 @@ export const signIn = async (req, res) => {
     }
 };
 
+export const resetPassword = async (req, res) => {
+    try {
+        const { userId } = req.user; // Assuming `req.user` is populated by authentication middleware
+        const { newPassword } = req.body;
+
+        // Validate new password
+        if (!newPassword || newPassword.length < 8) {
+            return res.status(400).json({
+                message: "Password must be at least 8 characters long",
+            });
+        }
+
+        // Find the user by ID
+        const user = await clientModels.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Hash the new password
+        // const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update the user's password
+        // user.password = hashedPassword;
+        await clientModels.findByIdAndUpdate(userId, { password: newPassword }, { new: true })
+
+        res.status(200).json({
+            message: "Password updated successfully",
+        });
+    } catch (error) {
+        console.error("Error resetting password:", error.message);
+        res.status(500).json({
+            message: "An error occurred while resetting the password",
+            error: error.message,
+        });
+    }
+};
+
 // // Login a user
 // exports.loginUser = async (req, res) => {
 //     try {
