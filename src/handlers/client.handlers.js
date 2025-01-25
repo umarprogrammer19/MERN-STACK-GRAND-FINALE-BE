@@ -5,19 +5,19 @@ import { generateRandomPassword } from "../utils/random_password.js";
 
 export const registerUser = async (req, res) => {
     try {
-        const { cnic, email, name } = req.body;
+        const { cnic, email, name, role } = req.body;
         if (!cnic) return res.status(400).json({ message: "Please Enter Your CNIC Number" });
         if (!name) return res.status(400).json({ message: "Please Enter Your Name Number" });
         if (!email) return res.status(400).json({ message: "Please Enter Your Email" });
 
-        const existingUser = await User.findOne({ email });
+        const existingUser = await clientModels.findOne({ cnic });
         if (existingUser) {
             return res.status(400).json({ message: "User already exists" });
         };
 
         const password = generateRandomPassword(10);
 
-        await clientModels.create({ fullname, email, password, role: role || "user" });
+        await clientModels.create({ name, email, password, role: role || "user" });
 
         await transporter.sendMail({
             from: 'Umar Farooq 🚀',
@@ -27,44 +27,58 @@ export const registerUser = async (req, res) => {
         })
 
     } catch (error) {
-        console.log(error.message);
+        console.log(error);
         res.status(400).json({ message: "Error Occured During Registration" });
     }
 }
-// const jwt = require("jsonwebtoken");
-// const bcrypt = require("bcryptjs");
-// const User = require("../models/User");
 
-// // Register a new user
-// exports.registerUser = async (req, res) => {
-//     try {
-//         const { cnic, email, name, password } = req.body;
+export const signIn = async (req, res) => {
+    const { cnic, password } = req.body;
 
-//         // Check if user already exists
-//         const existingUser = await User.findOne({ email });
-//         if (existingUser) {
-//             return res.status(400).json({ message: "User already exists" });
-//         }
+    if (!cnic || !password) {
+        return res.status(400).json({ message: "CNIC and password are required" });
+    }
 
-//         // Hash password
-//         const hashedPassword = await bcrypt.hash(password, 10);
+    try {
+        // Find user by CNIC
+        const user = await clientModels.findOne({ cnic });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
 
-//         // Create new user
-//         const newUser = new User({
-//             cnic,
-//             email,
-//             name,
-//             password: hashedPassword,
-//             phone,
-//             address,
-//         });
+        // Validate password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(400).json({ message: "Invalid password" });
+        }
 
-//         await newUser.save();
-//         res.status(201).json({ message: "User registered successfully" });
-//     } catch (error) {
-//         res.status(500).json({ message: "Server error", error: error.message });
-//     }
-// };
+        // Generate access and refresh tokens
+        const accessToken = generateAccessToken(user);
+        const refreshToken = generateRefreshToken(user);
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            path: "/",
+        });
+
+        res.status(200).json({
+            message: "User logged in successfully",
+            accessToken,
+            user: {
+                id: user._id,
+                fullname: user.fullname,
+                cnic: user.cnic,
+                email: user.email,
+                role: user.role,
+            },
+        });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ message: "Error occurred", error: error.message });
+    }
+};
 
 // // Login a user
 // exports.loginUser = async (req, res) => {
