@@ -1,5 +1,6 @@
 import express from "express";
 import "dotenv/config";
+import connectdb from "./src/database/index.js";
 
 const app = express();
 const port = process.env.PORT;
@@ -10,6 +11,12 @@ app.get("/", (req, res) => {
     res.send("Hello World");
 });
 
-app.listen(port, () => {
-    console.log("Server is Running On The Port", port);
-});
+connectdb()
+    .then(() => {
+        app.listen(port, () => {
+            console.log(`🌐✨ Server is up and running smoothly on port ${port}! 🚀🔥`);
+        })
+    })
+    .catch((error) => {
+        console.log(error.message);
+    })
