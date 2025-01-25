@@ -6,31 +6,46 @@ import { generateRandomPassword } from "../utils/random_password.js";
 export const registerUser = async (req, res) => {
     try {
         const { cnic, email, name, role } = req.body;
+
+        // Validate required fields
         if (!cnic) return res.status(400).json({ message: "Please Enter Your CNIC Number" });
-        if (!name) return res.status(400).json({ message: "Please Enter Your Name Number" });
+        if (!name) return res.status(400).json({ message: "Please Enter Your Name" });
         if (!email) return res.status(400).json({ message: "Please Enter Your Email" });
 
+        // Check if the user already exists by CNIC
         const existingUser = await clientModels.findOne({ cnic });
         if (existingUser) {
-            return res.status(400).json({ message: "User already exists" });
-        };
+            return res.status(400).json({ message: "User with this CNIC already exists" });
+        }
 
+        // Generate a random password
         const password = generateRandomPassword(10);
 
-        await clientModels.create({ name, email, password, role: role || "user" });
+        // Save the user to the database
+        await clientModels.create({
+            cnic,
+            name,
+            email,
+            password,
+            role: role || "user", // Default to "user" if no role is provided
+        });
 
+        // Send a welcome email
         await transporter.sendMail({
             from: 'Umar Farooq 🚀',
             to: `${email}, ${process.env.EMAIL}`,
             subject: "Welcome to Our Micro Finance Application! 🚀",
             html: Sign_Up_Email_Format(name, password),
-        })
+        });
+
+        // Respond to the client
+        res.status(201).json({ message: "User registered successfully" });
 
     } catch (error) {
-        console.log(error);
-        res.status(400).json({ message: "Error Occured During Registration" });
+        console.error("Error during registration:", error.message);
+        res.status(400).json({ message: "Error occurred during registration", error: error.message });
     }
-}
+};
 
 export const signIn = async (req, res) => {
     const { cnic, password } = req.body;
