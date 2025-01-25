@@ -1,4 +1,4 @@
-import users from "../models/user.models.js";
+import users from "../models/users.models.js";
 import bcrypt from 'bcrypt'
 import jwt from "jsonwebtoken";
 import { uploadImageToCloudinary } from "../utils/cloudinary.js";
