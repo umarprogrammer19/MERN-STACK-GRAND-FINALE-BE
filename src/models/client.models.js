@@ -2,7 +2,13 @@ const UserSchema = new mongoose.Schema({
     cnic: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        validate: {
+            validator: function (value) {
+                return /^\d{5}-\d{7}-\d{1}$/.test(value); // format: *****-*******-*
+            },
+            message: "Invalid CNIC format. Use #####-#######-# format.",
+        },
     },
     email: {
         type: String,
