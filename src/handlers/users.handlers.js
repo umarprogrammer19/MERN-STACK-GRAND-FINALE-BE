@@ -33,8 +33,8 @@ export const signUp = async (req, res) => {
         await users.create({ fullname, email, password, imageURL })
         res.status(200).json({ message: "user register successfully" })
     } catch (error) {
-        res.status(400).json({ message: "error occured" })
-        console.log(error);
+        res.status(400).json({ message: "error occured", error: error.message })
+        console.log(error.message);
     }
 }
 
@@ -68,8 +68,8 @@ export const signIn = async (req, res) => {
             user,
         });
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: "An error occurred during Login" });
+        console.log(error.message);
+        res.status(500).json({ message: "An error occurred during Login", error: error.message });
     }
 }
 
@@ -80,7 +80,7 @@ export const logOut = async (req, res) => {
         await res.clearCookie("accessToken");
         res.status(200).json({ message: "Logout Successfull" })
     } catch (error) {
-        console.log(error);
-        res.status(400).json({ message: "An error occurred during Logout" })
+        console.log(error.message);
+        res.status(400).json({ message: "An error occurred during Logout", error: error.message })
     };
 };
