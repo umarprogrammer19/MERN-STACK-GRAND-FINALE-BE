@@ -11,9 +11,11 @@ const app = express();
 const port = process.env.PORT;
 
 const corsOptions = {
-    origin: 'http://localhost:3000',
+    origin: process.env.NODE_ENV !== "poduction" ? 'http://localhost:3000' : "https://mern-stack-grand-finale-fe.vercel.app/",
     credentials: true,
 };
+console.log(corsOptions);
+
 
 app.use(cors(corsOptions));
 app.use((urlencoded({ extended: false })));
