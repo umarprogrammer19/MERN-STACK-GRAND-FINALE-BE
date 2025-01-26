@@ -1,4 +1,4 @@
-import loanModels from "../models/loan.models";
+import loanModels from "../models/loan.models.js";
 export const getLoanDetails = async (req, res) => {
     try {
         const loans = await loanModels.find({ userId: req.user.id });
@@ -23,14 +23,14 @@ export const submitLoanRequest = async (req, res) => {
         const { category, subcategory, amount, loanPeriod, guarantors } = req.body;
 
         // Validation
-        if (!category || !subcategory || !amount || !loanPeriod || guarantors.length < 2) {
+        if (!category || !subcategory || !amount || !loanPeriod || !guarantors) {
             return res.status(400).json({
                 message: "All fields are required, and at least 2 guarantors must be provided."
             });
         }
 
         // Create a new loan request
-        const newLoan = new Loan({
+        const newLoan = new loanModels({
             userId: req.user.id, // Authenticated user's ID
             category,
             subcategory,
