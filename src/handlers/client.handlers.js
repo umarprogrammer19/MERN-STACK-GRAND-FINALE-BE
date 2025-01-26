@@ -29,7 +29,7 @@ export const registerUser = async (req, res) => {
             name,
             email,
             password,
-            role: role || "user", // Default to "user" if no role is provided
+            role: role || "user",
         });
 
         // Send a welcome email
