@@ -4,7 +4,7 @@ import { filterApplications, getAllApplications, scheduleAppointment, updateAppl
 const router = express.Router()
 
 router.get('/getApp', getAllApplications);
-router.put('/updateApp', updateApplicationStatus);
+router.put('/updateApp/:id', updateApplicationStatus);
 router.get('/filterApp', filterApplications);
 router.post('/scheduleApp', scheduleAppointment);
 
