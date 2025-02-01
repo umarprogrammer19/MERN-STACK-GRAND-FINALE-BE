@@ -29,6 +29,7 @@ app.get("/", (req, res) => {
 });
 
 
+// Connect Database
 connectdb()
     .then(() => {
         app.listen(port, () => {
