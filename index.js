@@ -15,7 +15,7 @@ const corsOptions = {
     credentials: true,
 };
 
-
+// Middleware and routes
 app.use(cors(corsOptions));
 app.use((urlencoded({ extended: false })));
 app.use(express.json());
@@ -24,6 +24,7 @@ app.use('/api/v1', clientRouter);
 app.use('/api/v2', loanRouter);
 app.use('/api/admin', adminRouter);
 
+// Database Connection
 app.get("/", (req, res) => {
     res.send("SMIT GRAND FINALS");
 });
